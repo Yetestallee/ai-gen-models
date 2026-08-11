@@ -1,0 +1,42 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="WorkspaceRoot" class="workspace-root">
+        <ui:VisualElement name="TopBar" class="top-bar">
+            <ui:Label text="Meshy Workspace" name="BrandLabel" class="brand-label" />
+            <ui:Label text="余额 --" name="BalanceLabel" class="balance-label" />
+            <ui:Button text="刷新余额" name="RefreshBalanceButton" class="icon-button" />
+            <ui:Button text="设置" name="SettingsButton" class="icon-button" />
+            <ui:Button text="帮助" name="HelpButton" class="icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Body" class="body">
+            <ui:VisualElement name="Sidebar" class="sidebar">
+                <ui:Button text="资产" name="SidebarAssets" class="sidebar-button disabled" />
+                <ui:Button text="智能体" name="SidebarAgent" class="sidebar-button disabled" />
+                <ui:Button text="图像" name="SidebarImage" class="sidebar-button active" />
+                <ui:Button text="模型" name="SidebarModel" class="sidebar-button" />
+                <ui:Button text="打印" name="SidebarPrint" class="sidebar-button disabled" />
+                <ui:Button text="动画" name="SidebarAnimate" class="sidebar-button" />
+            </ui:VisualElement>
+            <ui:VisualElement name="MainCanvas" class="main-canvas">
+                <ui:VisualElement name="ImageView" class="view">
+                    <ui:Label text="图片生成" name="ImageTitle" class="view-title" />
+                    <ui:TextField label="提示词" name="ImagePromptInput" class="view-input" />
+                    <ui:Label text="参数面板与结果区域将在 P3 接入。" class="placeholder-text" />
+                </ui:VisualElement>
+                <ui:VisualElement name="ModelView" class="view hidden">
+                    <ui:Label text="模型生成" name="ModelTitle" class="view-title" />
+                    <ui:TextField label="提示词" name="ModelPromptInput" class="view-input" />
+                    <ui:Label text="preview / refine 与 3D 预览将在 P4 接入。" class="placeholder-text" />
+                </ui:VisualElement>
+                <ui:VisualElement name="AnimateView" class="view hidden">
+                    <ui:Label text="动画" name="AnimateTitle" class="view-title" />
+                    <ui:TextField label="搜索动画" name="AnimateSearchInput" class="view-input" />
+                    <ui:Label text="绑定、动画库与播放将在 P5 接入。" class="placeholder-text" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="RightPanel" class="right-panel">
+                <ui:Label text="参数" class="panel-title" />
+                <ui:Label text="P2 骨架阶段" class="placeholder-text" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
