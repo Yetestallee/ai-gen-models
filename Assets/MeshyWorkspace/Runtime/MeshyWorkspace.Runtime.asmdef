@@ -1,9 +1,7 @@
 {
   "name": "MeshyWorkspace.Runtime",
   "rootNamespace": "MeshyWorkspace",
-  "references": [
-    "Unity.Newtonsoft.Json"
-  ],
+  "references": [],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
