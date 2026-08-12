@@ -123,6 +123,29 @@ namespace MeshyWorkspace
     {
         [JsonProperty("rigged_character_glb_url")]
         public string RiggedCharacterGlbUrl { get; set; }
+
+        [JsonProperty("result")]
+        public RigTaskResult Result { get; set; }
+
+        [JsonIgnore]
+        public string EffectiveRiggedGlbUrl
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(RiggedCharacterGlbUrl)
+                    ? RiggedCharacterGlbUrl
+                    : Result == null ? string.Empty : Result.RiggedCharacterGlbUrl;
+            }
+        }
+    }
+
+    public class RigTaskResult
+    {
+        [JsonProperty("rigged_character_glb_url")]
+        public string RiggedCharacterGlbUrl { get; set; }
+
+        [JsonProperty("rigged_character_fbx_url")]
+        public string RiggedCharacterFbxUrl { get; set; }
     }
 
     public class AnimationTask : MeshyTaskBase
@@ -190,6 +213,19 @@ namespace MeshyWorkspace
         public string ThumbnailUrl { get; set; }
     }
 
+    public class RemeshTask : MeshyTaskBase
+    {
+        [JsonProperty("model_urls")]
+        public Dictionary<string, string> ModelUrls { get; set; }
+
+        [JsonProperty("texture_urls")]
+        [JsonConverter(typeof(StringListOrDictionaryConverter))]
+        public List<string> TextureUrls { get; set; }
+
+        [JsonProperty("thumbnail_url")]
+        public string ThumbnailUrl { get; set; }
+    }
+
     public class BalanceResponse
     {
         [JsonProperty("balance")]
@@ -240,6 +276,15 @@ namespace MeshyWorkspace
         [JsonProperty("model_type", NullValueHandling = NullValueHandling.Ignore)]
         public string ModelType { get; set; }
 
+        [JsonProperty("should_remesh", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? ShouldRemesh { get; set; }
+
+        [JsonProperty("topology", NullValueHandling = NullValueHandling.Ignore)]
+        public string Topology { get; set; }
+
+        [JsonProperty("target_polycount", NullValueHandling = NullValueHandling.Ignore)]
+        public int? TargetPolycount { get; set; }
+
         [JsonProperty("preview_task_id", NullValueHandling = NullValueHandling.Ignore)]
         public string PreviewTaskId { get; set; }
 
@@ -275,6 +320,15 @@ namespace MeshyWorkspace
 
         [JsonProperty("model_type", NullValueHandling = NullValueHandling.Ignore)]
         public string ModelType { get; set; }
+
+        [JsonProperty("should_remesh", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? ShouldRemesh { get; set; }
+
+        [JsonProperty("topology", NullValueHandling = NullValueHandling.Ignore)]
+        public string Topology { get; set; }
+
+        [JsonProperty("target_polycount", NullValueHandling = NullValueHandling.Ignore)]
+        public int? TargetPolycount { get; set; }
 
         [JsonProperty("ai_model", NullValueHandling = NullValueHandling.Ignore)]
         public string AiModel { get; set; }
@@ -320,6 +374,21 @@ namespace MeshyWorkspace
 
         [JsonProperty("image_style_url", NullValueHandling = NullValueHandling.Ignore)]
         public string ImageStyleUrl { get; set; }
+    }
+
+    public class RemeshRequest
+    {
+        [JsonProperty("input_task_id", NullValueHandling = NullValueHandling.Ignore)]
+        public string InputTaskId { get; set; }
+
+        [JsonProperty("model_url", NullValueHandling = NullValueHandling.Ignore)]
+        public string ModelUrl { get; set; }
+
+        [JsonProperty("target_polycount", NullValueHandling = NullValueHandling.Ignore)]
+        public int? TargetPolycount { get; set; }
+
+        [JsonProperty("topology", NullValueHandling = NullValueHandling.Ignore)]
+        public string Topology { get; set; }
     }
 
     public sealed class StringListOrDictionaryConverter : JsonConverter

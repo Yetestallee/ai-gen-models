@@ -49,6 +49,11 @@ namespace MeshyWorkspace
             return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-retx") });
         }
 
+        public Task<CreateTaskResponse> CreateRemeshAsync(RemeshRequest request, CancellationToken ct = default)
+        {
+            return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-remesh") });
+        }
+
         public Task<T> GetTaskAsync<T>(string taskId, string taskType, CancellationToken ct = default) where T : MeshyTaskBase
         {
             pollCounts.TryGetValue(taskId, out var count);
@@ -120,6 +125,18 @@ namespace MeshyWorkspace
                         { "glb", "https://mock.invalid/model.glb" }
                     };
                     retextureTask.TextureUrls = new List<string>
+                    {
+                        "https://mock.invalid/base_color.png"
+                    };
+                }
+                var remeshTask = task as RemeshTask;
+                if (remeshTask != null)
+                {
+                    remeshTask.ModelUrls = new Dictionary<string, string>
+                    {
+                        { "glb", "https://mock.invalid/model.glb" }
+                    };
+                    remeshTask.TextureUrls = new List<string>
                     {
                         "https://mock.invalid/base_color.png"
                     };

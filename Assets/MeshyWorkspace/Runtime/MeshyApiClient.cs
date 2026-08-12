@@ -81,6 +81,11 @@ namespace MeshyWorkspace
             return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/retexture", request, ct).ConfigureAwait(false);
         }
 
+        public async Task<CreateTaskResponse> CreateRemeshAsync(RemeshRequest request, CancellationToken ct = default)
+        {
+            return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/remesh", request, ct).ConfigureAwait(false);
+        }
+
         public async Task<T> GetTaskAsync<T>(string taskId, string taskType, CancellationToken ct = default) where T : MeshyTaskBase
         {
             var path = string.Format("/openapi/{0}/{1}/{2}", TaskVersion(taskType), taskType, taskId);
@@ -90,8 +95,17 @@ namespace MeshyWorkspace
         public async Task<List<T>> ListTasksAsync<T>(string taskType, int pageNum = 1, int pageSize = 20, CancellationToken ct = default) where T : MeshyTaskBase
         {
             var path = string.Format("/openapi/{0}/{1}?page_num={2}&page_size={3}", TaskVersion(taskType), taskType, pageNum, pageSize);
-            var wrapper = await SendAsync<MeshyTaskList<T>>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
-            return wrapper == null ? new List<T>() : (wrapper.Data ?? new List<T>());
+            var token = await SendAsync<JToken>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
+            if (token == null)
+            {
+                return new List<T>();
+            }
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<T>>() ?? new List<T>();
+            }
+            var data = token["data"];
+            return data == null ? new List<T>() : (data.ToObject<List<T>>() ?? new List<T>());
         }
 
         public async Task DeleteTaskAsync(string taskType, string taskId, CancellationToken ct = default)

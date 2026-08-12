@@ -16,7 +16,7 @@ namespace MeshyWorkspace.Editor
             }
 
             var request = UnityWebRequest.Get(url);
-            request.timeout = 120;
+            request.timeout = 600;
             var operation = request.SendWebRequest();
             operation.completed += _ =>
             {
@@ -24,8 +24,21 @@ namespace MeshyWorkspace.Editor
                 {
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        File.WriteAllBytes(destinationPath, request.downloadHandler.data);
-                        onDone?.Invoke(true);
+                        try
+                        {
+                            var directory = Path.GetDirectoryName(destinationPath);
+                            if (!string.IsNullOrEmpty(directory))
+                            {
+                                Directory.CreateDirectory(directory);
+                            }
+                            File.WriteAllBytes(destinationPath, request.downloadHandler.data);
+                            onDone?.Invoke(true);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogWarning("[Meshy] 写入下载文件失败: " + destinationPath + " -> " + e.Message);
+                            onDone?.Invoke(false);
+                        }
                     }
                     else
                     {

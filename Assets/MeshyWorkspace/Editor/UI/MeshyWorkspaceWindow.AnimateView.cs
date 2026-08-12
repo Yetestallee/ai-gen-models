@@ -271,7 +271,7 @@ namespace MeshyWorkspace.Editor
             var added = 0;
             foreach (var entry in entries)
             {
-                if (entry.TaskType != "text-to-3d" && entry.TaskType != "image-to-3d")
+                if (!IsModelTaskType(entry.TaskType))
                 {
                     continue;
                 }

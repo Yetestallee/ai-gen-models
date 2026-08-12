@@ -75,7 +75,7 @@
                             <ui:DropdownField name="ModelTopologyAiDropdown" class="model-select" />
                             <ui:Label text="面数" class="section-label" />
                             <ui:IntegerField name="ModelTopologyFacesField" class="model-select" />
-                            <ui:Label text="100 - 15000 · 默认 4000" name="ModelTopologyFacesHint" class="hint-text" />
+                            <ui:Label text="100 - 300000 · 默认 30000" name="ModelTopologyFacesHint" class="hint-text" />
                         </ui:VisualElement>
                         <ui:Label text="姿势" class="section-label" />
                         <ui:VisualElement name="ModelPoseSegments" class="segmented" />
@@ -94,6 +94,14 @@
                         </ui:VisualElement>
                         <ui:VisualElement name="ModelPostSection" class="action-bar">
                             <ui:Label text="后处理" class="section-label" />
+                            <ui:Label text="重拓扑" class="section-label" />
+                            <ui:VisualElement name="ModelRemeshTopologySegments" class="segmented" />
+                            <ui:IntegerField name="ModelRemeshFacesField" class="model-select" />
+                            <ui:Label text="100 - 300000 · 默认 30000" name="ModelRemeshFacesHint" class="hint-text" />
+                            <ui:Button text="重拓扑" name="ModelRemeshButton" class="primary-button" />
+                            <ui:Label text="风格参考图（可选）" class="section-label" />
+                            <ui:Button text="选择参考图" name="ModelRetextureImageButton" class="dropzone" />
+                            <ui:TextField name="ModelRetextureImageUrlField" class="model-select" placeholder="或粘贴图片 URL" />
                             <ui:TextField name="ModelRetexturePromptField" class="prompt-field" multiline="true" placeholder="描述新风格，例如：红木材质" />
                             <ui:Button text="重新纹理" name="ModelRetextureButton" class="primary-button" />
                         </ui:VisualElement>

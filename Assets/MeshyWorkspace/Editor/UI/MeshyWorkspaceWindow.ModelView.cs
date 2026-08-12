@@ -30,25 +30,34 @@ namespace MeshyWorkspace.Editor
         private Button modelRefineButton;
         private Button modelImportButton;
         private Button modelRetextureButton;
+        private Button modelRemeshButton;
+        private Button modelRetextureImageButton;
         private TextField modelRetexturePromptField;
+        private TextField modelRetextureImageUrlField;
+        private IntegerField modelRemeshFacesField;
         private Image modelPreviewImage;
         private ProgressBar modelProgressBar;
         private ScrollView modelHistoryList;
 
         private string modelMode = "standard";
         private string modelTopology = "triangle";
+        private string modelRemeshTopology = "triangle";
         private string modelTopologyAiModel = "meshy T1";
-        private int modelTopologyFaces = 4000;
+        private int modelTopologyFaces = 30000;
+        private int modelRemeshFaces = 30000;
+        private string modelRetextureImageDataUri;
         private string modelPose;
         private string modelPreviewTaskId;
         private string modelLastGlbPath;
         private string modelLocalImageDataUri;
         private bool modelGenerating;
         private bool modelRetexturing;
+        private bool modelRemeshing;
         private bool modelDragging;
         private int modelPointerMode;
         private Vector3 modelLastPointer;
         private MeshyModelPreviewHost modelPreviewHost;
+        private MeshyCachedTask modelSelectedEntry;
 
         private void BindModelPage()
         {
@@ -68,6 +77,10 @@ namespace MeshyWorkspace.Editor
             modelImportButton = rootVisualElement.Q<Button>("ModelImportButton");
             modelRetextureButton = rootVisualElement.Q<Button>("ModelRetextureButton");
             modelRetexturePromptField = rootVisualElement.Q<TextField>("ModelRetexturePromptField");
+            modelRetextureImageButton = rootVisualElement.Q<Button>("ModelRetextureImageButton");
+            modelRetextureImageUrlField = rootVisualElement.Q<TextField>("ModelRetextureImageUrlField");
+            modelRemeshButton = rootVisualElement.Q<Button>("ModelRemeshButton");
+            modelRemeshFacesField = rootVisualElement.Q<IntegerField>("ModelRemeshFacesField");
             modelPreviewImage = rootVisualElement.Q<Image>("ModelPreviewImage");
             modelProgressBar = rootVisualElement.Q<ProgressBar>("ModelProgressBar");
             modelHistoryList = rootVisualElement.Q<ScrollView>("ModelHistoryList");
@@ -111,15 +124,19 @@ namespace MeshyWorkspace.Editor
             {
                 modelTopologyAiDropdown.choices = new List<string> { "meshy T1", "meshy T2" };
                 modelTopologyAiDropdown.index = 0;
-                modelTopologyAiDropdown.RegisterValueChangedCallback(evt => modelTopologyAiModel = evt.newValue);
+                modelTopologyAiDropdown.RegisterValueChangedCallback(evt =>
+                {
+                    modelTopologyAiModel = evt.newValue;
+                    UpdateTopologyFaceLimit();
+                });
             }
             modelTopologyFacesField = rootVisualElement.Q<IntegerField>("ModelTopologyFacesField");
             if (modelTopologyFacesField != null)
             {
-                modelTopologyFacesField.value = 4000;
+                modelTopologyFacesField.value = 30000;
                 modelTopologyFacesField.RegisterValueChangedCallback(evt =>
                 {
-                    modelTopologyFaces = Mathf.Clamp(evt.newValue, 100, 15000);
+                    modelTopologyFaces = Mathf.Clamp(evt.newValue, 100, TopologyFaceMax());
                     modelTopologyFacesField.SetValueWithoutNotify(modelTopologyFaces);
                 });
             }
@@ -151,6 +168,27 @@ namespace MeshyWorkspace.Editor
             if (modelRetextureButton != null)
             {
                 modelRetextureButton.clicked += () => _ = RunRetextureAsync();
+            }
+            if (modelRetextureImageButton != null)
+            {
+                modelRetextureImageButton.clicked += OnModelRetextureImageClicked;
+            }
+            BindSegmented("ModelRemeshTopologySegments", new[] { "四边面", "三角面" }, option =>
+            {
+                modelRemeshTopology = option == "四边面" ? "quad" : "triangle";
+            });
+            if (modelRemeshFacesField != null)
+            {
+                modelRemeshFacesField.value = modelRemeshFaces;
+                modelRemeshFacesField.RegisterValueChangedCallback(evt =>
+                {
+                    modelRemeshFaces = Mathf.Clamp(evt.newValue, 100, 300000);
+                    modelRemeshFacesField.SetValueWithoutNotify(modelRemeshFaces);
+                });
+            }
+            if (modelRemeshButton != null)
+            {
+                modelRemeshButton.clicked += () => _ = RunRemeshAsync();
             }
 
             if (modelPreviewImage != null)
@@ -198,6 +236,7 @@ namespace MeshyWorkspace.Editor
             RefreshModelHistory();
             UpdateModelCost();
             UpdateModelModeUi();
+            UpdateTopologyFaceLimit();
             SetModelStatus("就绪", false);
         }
 
@@ -241,6 +280,30 @@ namespace MeshyWorkspace.Editor
             UpdateModelCost();
         }
 
+        private static string MapTopologyAiModel(string label)
+        {
+            return label == "meshy T2" ? "meshy-t2" : "meshy-t1";
+        }
+
+        private int TopologyFaceMax()
+        {
+            return modelTopologyAiModel == "meshy T2" ? 15000 : 300000;
+        }
+
+        private void UpdateTopologyFaceLimit()
+        {
+            modelTopologyFaces = Mathf.Clamp(modelTopologyFaces, 100, TopologyFaceMax());
+            if (modelTopologyFacesField != null)
+            {
+                modelTopologyFacesField.SetValueWithoutNotify(modelTopologyFaces);
+            }
+            var hint = rootVisualElement.Q<Label>("ModelTopologyFacesHint");
+            if (hint != null)
+            {
+                hint.text = "100 - " + TopologyFaceMax() + " · 默认 30000";
+            }
+        }
+
         private void SetModelElementDisplay(string name, bool visible)
         {
             var element = rootVisualElement.Q<VisualElement>(name);
@@ -274,6 +337,30 @@ namespace MeshyWorkspace.Editor
             var bytes = File.ReadAllBytes(path);
             modelLocalImageDataUri = "data:" + mime + ";base64," + Convert.ToBase64String(bytes);
             SetModelStatus("已选择本地参考图（可用作 Image-to-3D）", false);
+        }
+
+        private void OnModelRetextureImageClicked()
+        {
+            var path = EditorUtility.OpenFilePanel("选择风格参考图", "", "png,jpg,jpeg,webp");
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+            var info = new FileInfo(path);
+            if (info.Length > 20L * 1024 * 1024)
+            {
+                SetModelStatus("风格参考图超过 20MB 限制", true);
+                return;
+            }
+            var extension = Path.GetExtension(path).ToLowerInvariant();
+            var mime = extension == ".png" ? "image/png" : extension == ".webp" ? "image/webp" : "image/jpeg";
+            var bytes = File.ReadAllBytes(path);
+            modelRetextureImageDataUri = "data:" + mime + ";base64," + Convert.ToBase64String(bytes);
+            if (modelRetextureImageUrlField != null)
+            {
+                modelRetextureImageUrlField.SetValueWithoutNotify(string.Empty);
+            }
+            SetModelStatus("已选择风格参考图", false);
         }
 
         private void RegisterModelDropZone(VisualElement zone)
@@ -440,15 +527,21 @@ namespace MeshyWorkspace.Editor
 
                 if (!string.IsNullOrEmpty(modelLocalImageDataUri) || !string.IsNullOrEmpty(imageTaskId))
                 {
+                    var smartTopology = modelMode == "lowpoly";
                     var imageRequest = new ImageTo3DRequest
                     {
                         ImageUrl = string.IsNullOrEmpty(modelLocalImageDataUri) ? null : modelLocalImageDataUri,
                         InputTaskId = string.IsNullOrEmpty(modelLocalImageDataUri) ? imageTaskId : null,
                         ShouldTexture = true,
                         EnablePbr = true,
-                        AiModel = modelAiDropdown == null ? "meshy-6" : modelAiDropdown.value,
+                        AiModel = smartTopology
+                            ? MapTopologyAiModel(modelTopologyAiModel)
+                            : modelAiDropdown == null ? "meshy-6" : modelAiDropdown.value,
                         PoseMode = modelPose,
-                        ModelType = modelMode
+                        ModelType = smartTopology ? "smart-topology" : null,
+                        ShouldRemesh = smartTopology ? true : (bool?)null,
+                        Topology = smartTopology ? modelTopology : null,
+                        TargetPolycount = smartTopology ? modelTopologyFaces : (int?)null
                     };
                     var created = await api.CreateImageTo3DAsync(imageRequest);
                     lastCreatedTaskId = created.Result;
@@ -467,16 +560,29 @@ namespace MeshyWorkspace.Editor
                         "image-to-3d",
                         t => PostModelProgress(t),
                         CancellationToken.None);
-                    await FinalizeModelAsync(task.Id, task.ModelUrls, task.TextureUrls, task.ConsumedCredits, prompt, useMock);
+                    await FinalizeModelAsync(
+                        task.Id,
+                        task.ModelUrls,
+                        task.TextureUrls,
+                        task.ConsumedCredits,
+                        prompt,
+                        useMock,
+                        "image-to-3d");
                 }
                 else
                 {
+                    var smartTopology = modelMode == "lowpoly" && !refine;
                     var request = new TextTo3DRequest
                     {
                         Mode = refine ? "refine" : "preview",
                         Prompt = prompt,
-                        AiModel = modelAiDropdown == null ? "meshy-6" : modelAiDropdown.value,
-                        ModelType = modelMode,
+                        AiModel = smartTopology
+                            ? MapTopologyAiModel(modelTopologyAiModel)
+                            : modelAiDropdown == null ? "meshy-6" : modelAiDropdown.value,
+                        ModelType = refine || smartTopology ? null : modelMode,
+                        ShouldRemesh = smartTopology ? true : (bool?)null,
+                        Topology = smartTopology ? modelTopology : null,
+                        TargetPolycount = smartTopology ? modelTopologyFaces : (int?)null,
                         PreviewTaskId = refine ? modelPreviewTaskId : null,
                         EnablePbr = refine,
                         TextureResolution = refine ? "2k" : null,
@@ -504,7 +610,14 @@ namespace MeshyWorkspace.Editor
                     if (refine)
                     {
                         modelPreviewTaskId = null;
-                        await FinalizeModelAsync(task.Id, task.ModelUrls, task.TextureUrls, task.ConsumedCredits, prompt, useMock);
+                        await FinalizeModelAsync(
+                            task.Id,
+                            task.ModelUrls,
+                            task.TextureUrls,
+                            task.ConsumedCredits,
+                            prompt,
+                            useMock,
+                            "text-to-3d");
                     }
                     else
                     {
@@ -573,9 +686,10 @@ namespace MeshyWorkspace.Editor
             List<string> textureUrls,
             double credits,
             string prompt,
-            bool useMock)
+            bool useMock,
+            string taskType)
         {
-            var folder = MeshyPaths.TaskFolder("text-to-3d", taskId);
+            var folder = MeshyPaths.TaskFolder(taskType, taskId);
             Directory.CreateDirectory(folder);
             string glbPath = null;
 
@@ -604,7 +718,7 @@ namespace MeshyWorkspace.Editor
 
             if (!useMock && glbPath != null && File.Exists(glbPath))
             {
-                var relativeGlb = MeshyPaths.Relative("text-to-3d", taskId, "model.glb");
+                var relativeGlb = MeshyPaths.Relative(taskType, taskId, "model.glb");
                 AssetDatabase.ImportAsset(relativeGlb);
                 MeshyMaterialBuilder.CreatePbrMaterial(folder, textureUrls, "PBR");
             }
@@ -619,7 +733,7 @@ namespace MeshyWorkspace.Editor
                 imageCache.AddOrUpdate(new MeshyCachedTask
                 {
                     TaskId = taskId,
-                    TaskType = "text-to-3d",
+                    TaskType = taskType,
                     Status = "SUCCEEDED",
                     CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                     ConsumedCredits = credits,
@@ -661,7 +775,14 @@ namespace MeshyWorkspace.Editor
                             taskType,
                             t => PostModelProgress(t),
                             CancellationToken.None);
-                        await FinalizeModelAsync(task.Id, task.ModelUrls, task.TextureUrls, task.ConsumedCredits, entry.Prompt, false);
+                        await FinalizeModelAsync(
+                            task.Id,
+                            task.ModelUrls,
+                            task.TextureUrls,
+                            task.ConsumedCredits,
+                            entry.Prompt,
+                            false,
+                            taskType);
                     }
                     else
                     {
@@ -670,7 +791,14 @@ namespace MeshyWorkspace.Editor
                             taskType,
                             t => PostModelProgress(t),
                             CancellationToken.None);
-                        await FinalizeModelAsync(task.Id, task.ModelUrls, task.TextureUrls, task.ConsumedCredits, entry.Prompt, false);
+                        await FinalizeModelAsync(
+                            task.Id,
+                            task.ModelUrls,
+                            task.TextureUrls,
+                            task.ConsumedCredits,
+                            entry.Prompt,
+                            false,
+                            taskType);
                     }
                 }
 
@@ -701,16 +829,19 @@ namespace MeshyWorkspace.Editor
                 return;
             }
 
-            var entry = LatestModelEntry();
+            var entry = modelSelectedEntry ?? LatestModelEntry();
             if (entry == null)
             {
                 SetModelStatus("请先生成或选择一个模型，再执行重新纹理", true);
                 return;
             }
             var prompt = modelRetexturePromptField == null ? string.Empty : modelRetexturePromptField.value.Trim();
-            if (string.IsNullOrEmpty(prompt))
+            var imageUrl = string.IsNullOrEmpty(modelRetextureImageDataUri)
+                ? (modelRetextureImageUrlField == null ? string.Empty : modelRetextureImageUrlField.value.Trim())
+                : modelRetextureImageDataUri;
+            if (string.IsNullOrEmpty(prompt) && string.IsNullOrEmpty(imageUrl))
             {
-                SetModelStatus("请输入重新纹理的风格描述", true);
+                SetModelStatus("请输入风格描述，或选择/粘贴风格参考图", true);
                 return;
             }
 
@@ -734,7 +865,8 @@ namespace MeshyWorkspace.Editor
                 var request = new RetextureRequest
                 {
                     InputTaskId = entry.TaskId,
-                    TextStylePrompt = prompt
+                    TextStylePrompt = string.IsNullOrEmpty(prompt) ? null : prompt,
+                    ImageStyleUrl = string.IsNullOrEmpty(imageUrl) ? null : imageUrl
                 };
                 var created = await api.CreateRetextureAsync(request);
                 var poller = new MeshyTaskPoller(api, TimeSpan.FromSeconds(2), 120);
@@ -746,6 +878,14 @@ namespace MeshyWorkspace.Editor
 
                 var folder = MeshyPaths.TaskFolder("retexture", task.Id);
                 Directory.CreateDirectory(folder);
+                if (!useMock && task.ModelUrls != null && task.ModelUrls.ContainsKey("glb"))
+                {
+                    var glbPath = Path.Combine(folder, "model.glb");
+                    if (await DownloadToFileAsync(task.ModelUrls["glb"], glbPath))
+                    {
+                        AssetDatabase.ImportAsset(MeshyPaths.Relative("retexture", task.Id, "model.glb"));
+                    }
+                }
                 if (!useMock && task.TextureUrls != null)
                 {
                     for (var i = 0; i < task.TextureUrls.Count; i++)
@@ -768,10 +908,11 @@ namespace MeshyWorkspace.Editor
                         Status = "SUCCEEDED",
                         CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                         ConsumedCredits = task.ConsumedCredits,
-                        Prompt = prompt,
+                        Prompt = string.IsNullOrEmpty(prompt) ? "图片风格重贴图" : prompt,
                         ModelUrls = task.ModelUrls,
                         TextureUrls = task.TextureUrls
                     });
+                    RefreshModelHistory();
                     SetModelStatus("重新纹理完成：" + task.Id, false);
                 });
             }
@@ -790,18 +931,126 @@ namespace MeshyWorkspace.Editor
             }
         }
 
+        private async Task RunRemeshAsync()
+        {
+            if (modelRemeshing)
+            {
+                return;
+            }
+
+            var entry = modelSelectedEntry ?? LatestModelEntry();
+            if (entry == null)
+            {
+                SetModelStatus("请先生成或选择一个模型，再执行重拓扑", true);
+                return;
+            }
+
+            var useMock = MeshySettings.UseMockMode;
+            modelRemeshing = true;
+            modelRemeshButton.SetEnabled(false);
+            SetModelStatus(useMock ? "模拟模式：正在重拓扑..." : "正在重拓扑...", false);
+
+            IMeshyApi api = null;
+            try
+            {
+                api = useMock
+                    ? (IMeshyApi)new MeshyMockApi()
+                    : new MeshyApiClient(new MeshyApiConfig
+                    {
+                        ApiKey = MeshySettings.ApiKey,
+                        ProxyUrl = MeshySettings.ProxyUrl,
+                        TimeoutSeconds = MeshySettings.TimeoutSeconds
+                    });
+
+                var request = new RemeshRequest
+                {
+                    InputTaskId = entry.TaskId,
+                    TargetPolycount = modelRemeshFaces,
+                    Topology = modelRemeshTopology
+                };
+                var created = await api.CreateRemeshAsync(request);
+                var poller = new MeshyTaskPoller(api, TimeSpan.FromSeconds(2), 300);
+                var task = await poller.WaitForTaskAsync<RemeshTask>(
+                    created.Result,
+                    "remesh",
+                    t => PostModelProgress(t),
+                    System.Threading.CancellationToken.None);
+
+                var folder = MeshyPaths.TaskFolder("remesh", task.Id);
+                Directory.CreateDirectory(folder);
+                if (!useMock && task.ModelUrls != null && task.ModelUrls.ContainsKey("glb"))
+                {
+                    var glbPath = Path.Combine(folder, "model.glb");
+                    if (await DownloadToFileAsync(task.ModelUrls["glb"], glbPath))
+                    {
+                        AssetDatabase.ImportAsset(MeshyPaths.Relative("remesh", task.Id, "model.glb"));
+                    }
+                }
+                if (!useMock && task.TextureUrls != null)
+                {
+                    for (var i = 0; i < task.TextureUrls.Count; i++)
+                    {
+                        var extension = Path.GetExtension(new Uri(task.TextureUrls[i]).AbsolutePath);
+                        if (string.IsNullOrEmpty(extension))
+                        {
+                            extension = ".png";
+                        }
+                        await DownloadToFileAsync(task.TextureUrls[i], Path.Combine(folder, "texture_" + i + extension));
+                    }
+                }
+
+                MeshyUiDispatcher.Post(() =>
+                {
+                    imageCache.AddOrUpdate(new MeshyCachedTask
+                    {
+                        TaskId = task.Id,
+                        TaskType = "remesh",
+                        Status = "SUCCEEDED",
+                        CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        ConsumedCredits = task.ConsumedCredits,
+                        Prompt = entry.Prompt + " · remesh " + modelRemeshFaces + " 面",
+                        ModelUrls = task.ModelUrls,
+                        TextureUrls = task.TextureUrls
+                    });
+                    RefreshModelHistory();
+                    SetModelStatus("重拓扑完成：" + task.Id, false);
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                MeshyUiDispatcher.Post(() => SetModelStatus("重拓扑失败：" + e.Message, true));
+            }
+            finally
+            {
+                MeshyUiDispatcher.Post(() =>
+                {
+                    modelRemeshing = false;
+                    modelRemeshButton.SetEnabled(true);
+                });
+            }
+        }
+
         private MeshyCachedTask LatestModelEntry()
         {
             for (var i = imageCache.Entries.Count - 1; i >= 0; i--)
             {
                 var candidate = imageCache.Entries[i];
-                if ((candidate.TaskType == "text-to-3d" || candidate.TaskType == "image-to-3d") &&
+                if (IsModelTaskType(candidate.TaskType) &&
                     candidate.ModelUrls != null && candidate.ModelUrls.ContainsKey("glb"))
                 {
                     return candidate;
                 }
             }
             return null;
+        }
+
+        private static bool IsModelTaskType(string taskType)
+        {
+            return taskType == "text-to-3d" ||
+                   taskType == "image-to-3d" ||
+                   taskType == "remesh" ||
+                   taskType == "retexture";
         }
 
         private void PostModelSseProgress(int progress)
@@ -917,7 +1166,7 @@ namespace MeshyWorkspace.Editor
             entries.Reverse();
             foreach (var entry in entries)
             {
-                if (entry.TaskType != "text-to-3d" && entry.TaskType != "image-to-3d")
+                if (!IsModelTaskType(entry.TaskType))
                 {
                     continue;
                 }
@@ -981,6 +1230,7 @@ namespace MeshyWorkspace.Editor
 
         private void SelectModelHistory(MeshyCachedTask entry)
         {
+            modelSelectedEntry = entry;
             var glbPath = MeshyPaths.FindModelFile(entry.TaskId) ?? string.Empty;
             if (File.Exists(glbPath))
             {
@@ -1405,6 +1655,169 @@ namespace MeshyWorkspace.Editor
             EditorApplication.update += Poll;
         }
 
+        [MenuItem("Meshy Workspace/Smoke Test Remesh (Mock)")]
+        public static void SmokeTestRemeshMock()
+        {
+            var existing = GetWindow<MeshyWorkspaceWindow>(false, "Meshy Workspace");
+            if (existing != null)
+            {
+                existing.Close();
+            }
+            var window = GetWindow<MeshyWorkspaceWindow>(false, "Meshy Workspace");
+            window.Show();
+            window.ShowView("ModelView", "SidebarModel");
+            MeshySettings.UseMockMode = true;
+
+            if (window.LatestModelEntry() == null)
+            {
+                Debug.LogError("[Meshy P6] 没有可用模型历史，请先完成模型生成。");
+                return;
+            }
+            if (window.modelRemeshFacesField != null)
+            {
+                window.modelRemeshFacesField.SetValueWithoutNotify(250000);
+            }
+
+            _ = window.RunRemeshAsync();
+            var started = EditorApplication.timeSinceStartup;
+            void Poll()
+            {
+                if (!window.modelRemeshing &&
+                    window.modelStatusLabel != null &&
+                    window.modelStatusLabel.text.Contains("重拓扑完成"))
+                {
+                    EditorApplication.update -= Poll;
+                    FinishRemeshMock(window, true, "remeshDone");
+                    return;
+                }
+
+                if (EditorApplication.timeSinceStartup - started > 120.0)
+                {
+                    EditorApplication.update -= Poll;
+                    FinishRemeshMock(window, false, "timeout");
+                }
+            }
+            EditorApplication.update += Poll;
+        }
+
+        [MenuItem("Meshy Workspace/Recover Missing Model Tasks")]
+        public static async void RecoverMissingModelTasks()
+        {
+            if (!MeshySettings.HasApiKey)
+            {
+                Debug.LogError("[Meshy] 未配置 API Key。");
+                return;
+            }
+
+            var window = GetWindow<MeshyWorkspaceWindow>("Meshy Workspace");
+            window.Show();
+            var cache = window.imageCache ?? new MeshyTaskCache(
+                Path.Combine(Application.dataPath, "MeshyWorkspace", "History", "tasks.json"));
+
+            var recovered = new List<string>();
+            var skipped = 0;
+
+            async System.Threading.Tasks.Task<bool> RecoverOne(TextTo3DTask task)
+            {
+                if (task == null ||
+                    task.Status != MeshyTaskStatus.Succeeded ||
+                    task.ModelUrls == null ||
+                    !task.ModelUrls.ContainsKey("glb"))
+                {
+                    return false;
+                }
+
+                var folder = MeshyPaths.TaskFolder("text-to-3d", task.Id);
+                var glb = Path.Combine(folder, "model.glb");
+                if (MeshyPaths.FindModelFile(task.Id) != null)
+                {
+                    return false;
+                }
+
+                Directory.CreateDirectory(folder);
+                var downloaded = await window.DownloadToFileAsync(task.ModelUrls["glb"], glb);
+                if (!downloaded)
+                {
+                    return false;
+                }
+
+                if (task.TextureUrls != null)
+                {
+                    for (var i = 0; i < task.TextureUrls.Count; i++)
+                    {
+                        var extension = Path.GetExtension(new Uri(task.TextureUrls[i]).AbsolutePath);
+                        if (string.IsNullOrEmpty(extension))
+                        {
+                            extension = ".png";
+                        }
+                        await window.DownloadToFileAsync(
+                            task.TextureUrls[i],
+                            Path.Combine(folder, "texture_" + i + extension));
+                    }
+                }
+
+                AssetDatabase.ImportAsset(MeshyPaths.Relative("text-to-3d", task.Id, "model.glb"));
+                cache.AddOrUpdate(new MeshyCachedTask
+                {
+                    TaskId = task.Id,
+                    TaskType = "text-to-3d",
+                    Status = "SUCCEEDED",
+                    CreatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    ConsumedCredits = task.ConsumedCredits,
+                    Prompt = "恢复任务",
+                    ModelUrls = task.ModelUrls,
+                    TextureUrls = task.TextureUrls
+                });
+                recovered.Add(task.Id);
+                return true;
+            }
+
+            try
+            {
+                using (var client = new MeshyApiClient(new MeshyApiConfig
+                {
+                    ApiKey = MeshySettings.ApiKey,
+                    ProxyUrl = MeshySettings.ProxyUrl,
+                    TimeoutSeconds = MeshySettings.TimeoutSeconds
+                }))
+                {
+                    var tasks = await client.ListTasksAsync<TextTo3DTask>(
+                        "text-to-3d",
+                        1,
+                        20,
+                        CancellationToken.None);
+                    foreach (var task in tasks)
+                    {
+                        if (!await RecoverOne(task))
+                        {
+                            skipped++;
+                        }
+                    }
+
+                    const string knownMissingId = "019ff489-0809-79c6-b19d-b01d0eeaf465";
+                    var direct = await client.GetTaskAsync<TextTo3DTask>(knownMissingId, "text-to-3d", CancellationToken.None);
+                    if (direct != null && !File.Exists(
+                            Path.Combine(MeshyPaths.TaskFolder("text-to-3d", direct.Id), "model.glb")) &&
+                        !await RecoverOne(direct))
+                    {
+                        skipped++;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            var result = "恢复完成：" + recovered.Count + " 个，跳过 " + skipped;
+            MeshyUiDispatcher.Post(() =>
+            {
+                window.RefreshModelHistory();
+                window.SetModelStatus(result + (recovered.Count > 0 ? "：" + string.Join(",", recovered) : string.Empty), recovered.Count == 0);
+            });
+            Debug.Log("[Meshy] " + result + " " + string.Join(",", recovered));
+        }
+
         private static void FinishRetextureMock(MeshyWorkspaceWindow window, bool ok, string note)
         {
             var lines = string.Join(
@@ -1426,6 +1839,29 @@ namespace MeshyWorkspace.Editor
                 Debug.LogWarning("[Meshy P6] 写入模拟重纹理报告失败: " + e.Message);
             }
             Debug.Log("[Meshy P6] 模拟重纹理流程: " + (ok ? "OK" : "FAILED") + " " + note);
+        }
+
+        private static void FinishRemeshMock(MeshyWorkspaceWindow window, bool ok, string note)
+        {
+            var lines = string.Join(
+                Environment.NewLine,
+                "mockRemesh=" + (ok ? "OK" : "FAILED"),
+                "note=" + note,
+                "history=" + (window.imageCache == null ? 0 : window.imageCache.Entries.Count));
+
+            try
+            {
+                var path = Path.Combine(Application.dataPath, "..", "Library", "MeshyWorkspace", "p6-remesh-mock-report.txt");
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(
+                    path,
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + Environment.NewLine + lines + Environment.NewLine);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("[Meshy P6] 写入模拟重拓扑报告失败: " + e.Message);
+            }
+            Debug.Log("[Meshy P6] 模拟重拓扑流程: " + (ok ? "OK" : "FAILED") + " " + note);
         }
     }
 }
