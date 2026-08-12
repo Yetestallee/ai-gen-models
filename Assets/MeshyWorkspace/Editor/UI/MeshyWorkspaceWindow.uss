@@ -40,6 +40,7 @@
 .body {
     flex-grow: 1;
     flex-direction: row;
+    min-height: 0;
 }
 
 .sidebar {
@@ -70,10 +71,15 @@
 .main-canvas {
     flex-grow: 1;
     padding: 16px;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .view {
     flex-grow: 1;
+    min-height: 0;
+    height: 100%;
+    align-items: stretch;
 }
 
 .view.hidden {
@@ -97,17 +103,350 @@
     margin-top: 4px;
 }
 
-.right-panel {
-    width: 240px;
-    background-color: #1d2025;
-    border-left-width: 1px;
-    border-left-color: #2a2d33;
-    padding: 14px;
-}
-
 .panel-title {
     font-size: 14px;
     color: #dfe3e8;
     -unity-font-style: bold;
     margin-bottom: 10px;
+}
+
+.image-control {
+    max-width: 520px;
+    margin-bottom: 8px;
+}
+
+.hint-text {
+    color: #8b929c;
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.cost-label {
+    color: #f0c674;
+    margin: 6px 0;
+}
+
+.primary-button {
+    background-color: #2e7d6b;
+    color: #ffffff;
+    border-width: 0;
+    padding: 8px 18px;
+    align-self: flex-start;
+    margin: 4px 0;
+}
+
+.primary-button:hover {
+    background-color: #37947f;
+}
+
+.secondary-button {
+    background-color: #2a2e35;
+    color: #dfe3e8;
+    border-width: 1px;
+    border-color: #3a3f47;
+    padding: 4px 10px;
+    margin-right: 6px;
+}
+
+.secondary-button:hover {
+    background-color: #343942;
+}
+
+.reference-row {
+    flex-direction: row;
+    margin: 6px 0;
+}
+
+.image-progress {
+    max-width: 520px;
+    margin: 8px 0;
+}
+
+.status-label {
+    color: #b9c0c8;
+    margin: 4px 0;
+}
+
+.status-label.error-text {
+    color: #e06c6c;
+}
+
+.result-scroll {
+    max-height: 260px;
+    margin-top: 6px;
+}
+
+.result-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.result-image {
+    width: 150px;
+    height: 150px;
+    margin: 6px;
+    background-color: #22262c;
+}
+
+.history-scroll {
+    max-height: 220px;
+    margin-top: 8px;
+}
+
+.history-card {
+    background-color: #1f2329;
+    border-width: 1px;
+    border-color: #2f343c;
+    padding: 8px;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+.history-card.active {
+    border-color: #3f9a83;
+    background-color: #243c37;
+}
+
+.history-row {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.history-title {
+    flex-grow: 1;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+}
+
+.history-thumb {
+    width: 100%;
+    height: 90px;
+    margin-top: 6px;
+    background-color: #17191d;
+}
+
+.history-card .secondary-button {
+    padding: 3px 7px;
+    font-size: 11px;
+    margin-right: 4px;
+}
+
+.image-view {
+    flex-direction: row;
+    min-height: 0;
+}
+
+.image-params {
+    width: 280px;
+    height: 100%;
+    flex-shrink: 0;
+    min-height: 0;
+    background-color: #101215;
+    border-right-width: 1px;
+    border-right-color: #262a30;
+    padding: 12px;
+}
+
+.image-canvas {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 12px 16px;
+    background-color: #0c0e11;
+}
+
+.section-label {
+    color: #9aa2ad;
+    font-size: 12px;
+    margin: 10px 0 6px;
+}
+
+.model-select {
+    background-color: #171a1f;
+    border-width: 1px;
+    border-color: #2c3138;
+    padding: 4px 8px;
+}
+
+.prompt-field {
+    min-height: 96px;
+    background-color: #171a1f;
+    border-width: 1px;
+    border-color: #2c3138;
+    padding: 8px;
+}
+
+.char-count {
+    color: #6f7781;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.segmented {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.segment {
+    background-color: #171a1f;
+    color: #cfd5dc;
+    border-width: 1px;
+    border-color: #2c3138;
+    padding: 4px 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+.segment.active {
+    background-color: #243c37;
+    color: #8fe3cf;
+    border-color: #2f6a5b;
+}
+
+.image-toggle {
+    margin: 4px 0;
+    color: #cfd5dc;
+}
+
+.dropzone {
+    min-height: 96px;
+    background-color: #14171b;
+    border-width: 1px;
+    border-color: #333941;
+    color: #9aa2ad;
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+    -unity-text-align: middle-center;
+    margin: 4px 0;
+}
+
+.dropzone:hover {
+    border-color: #3f9a83;
+    color: #cfe9e1;
+}
+
+.dropzone.drag-over {
+    border-color: #7fd4c2;
+    background-color: #1c2f2b;
+    color: #cfe9e1;
+}
+
+.action-bar {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: #262a30;
+    flex-direction: column;
+}
+
+.search-field {
+    background-color: #14171b;
+    border-width: 1px;
+    border-color: #2c3138;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+}
+
+.empty-state {
+    color: #5d646d;
+    font-size: 15px;
+    margin-top: 60px;
+    -unity-text-align: middle-center;
+}
+
+.result-scroll {
+    flex-grow: 1;
+}
+
+.result-image {
+    width: 128px;
+    height: 128px;
+    margin: 4px;
+    background-color: #171a1f;
+}
+
+.model-view {
+    flex-direction: row;
+    min-height: 0;
+}
+
+.model-preview-image {
+    flex-grow: 1;
+    min-height: 320px;
+    background-color: #0a0c0e;
+    border-width: 1px;
+    border-color: #262a30;
+}
+
+.model-actions {
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.animate-view {
+    flex-direction: row;
+    min-height: 0;
+}
+
+.animate-action-list {
+    max-height: 220px;
+    margin-bottom: 6px;
+}
+
+.action-card {
+    background-color: #171a1f;
+    color: #cfd5dc;
+    border-width: 1px;
+    border-color: #2c3138;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    -unity-text-align: middle-left;
+}
+
+.action-card:hover {
+    border-color: #3f9a83;
+    color: #cfe9e1;
+}
+
+.model-history-panel {
+    width: 260px;
+    flex-shrink: 0;
+    height: 100%;
+    min-height: 0;
+    background-color: #101215;
+    border-left-width: 1px;
+    border-left-color: #262a30;
+    padding: 10px;
+}
+
+.model-history-scroll {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.model-history-card.active {
+    border-color: #3f9a83;
+    background-color: #243c37;
+    color: #8fe3cf;
+}
+
+.model-history-card {
+    white-space: normal;
+}
+
+.unity-scroller,
+.unity-scroller--vertical {
+    background-color: #23272e;
+}
+
+.unity-base-slider__dragger {
+    background-color: #77828f;
+    border-radius: 4px;
 }

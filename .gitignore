@@ -72,3 +72,5 @@ crashlytics-build.properties
 # Meshy Workspace generated assets and local-only files
 /[Aa]ssets/MeshyGenerated/
 /[Aa]ssets/MeshyWorkspace/*.asset
+/[Aa]ssets/MeshyWorkspace/History
+/[Aa]ssets/MeshyWorkspace/History.meta

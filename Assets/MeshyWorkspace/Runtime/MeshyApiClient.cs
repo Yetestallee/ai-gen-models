@@ -66,22 +66,37 @@ namespace MeshyWorkspace
             return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/image-to-3d", request, ct).ConfigureAwait(false);
         }
 
+        public async Task<CreateTaskResponse> CreateRiggingAsync(RiggingRequest request, CancellationToken ct = default)
+        {
+            return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/rigging", request, ct).ConfigureAwait(false);
+        }
+
+        public async Task<CreateTaskResponse> CreateAnimationAsync(AnimationRequest request, CancellationToken ct = default)
+        {
+            return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/animations", request, ct).ConfigureAwait(false);
+        }
+
+        public async Task<CreateTaskResponse> CreateRetextureAsync(RetextureRequest request, CancellationToken ct = default)
+        {
+            return await SendAsync<CreateTaskResponse>(HttpMethod.Post, "/openapi/v1/retexture", request, ct).ConfigureAwait(false);
+        }
+
         public async Task<T> GetTaskAsync<T>(string taskId, string taskType, CancellationToken ct = default) where T : MeshyTaskBase
         {
-            var path = string.Format("/openapi/v1/{0}/{1}", taskType, taskId);
+            var path = string.Format("/openapi/{0}/{1}/{2}", TaskVersion(taskType), taskType, taskId);
             return await SendAsync<T>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
         }
 
         public async Task<List<T>> ListTasksAsync<T>(string taskType, int pageNum = 1, int pageSize = 20, CancellationToken ct = default) where T : MeshyTaskBase
         {
-            var path = string.Format("/openapi/v1/{0}?page_num={1}&page_size={2}", taskType, pageNum, pageSize);
+            var path = string.Format("/openapi/{0}/{1}?page_num={2}&page_size={3}", TaskVersion(taskType), taskType, pageNum, pageSize);
             var wrapper = await SendAsync<MeshyTaskList<T>>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
             return wrapper == null ? new List<T>() : (wrapper.Data ?? new List<T>());
         }
 
         public async Task DeleteTaskAsync(string taskType, string taskId, CancellationToken ct = default)
         {
-            var path = string.Format("/openapi/v1/{0}/{1}", taskType, taskId);
+            var path = string.Format("/openapi/{0}/{1}/{2}", TaskVersion(taskType), taskType, taskId);
             await SendAsync<object>(HttpMethod.Delete, path, null, ct).ConfigureAwait(false);
         }
 
@@ -156,6 +171,11 @@ namespace MeshyWorkspace
             {
                 return null;
             }
+        }
+
+        private static string TaskVersion(string taskType)
+        {
+            return taskType == "text-to-3d" ? "v2" : "v1";
         }
     }
 }

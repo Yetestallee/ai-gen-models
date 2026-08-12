@@ -12,6 +12,7 @@ namespace MeshyWorkspace.Editor
         private const string ApiKeyPref = "MeshyWorkspace.ApiKey";
         private const string ProxyUrlPref = "MeshyWorkspace.ProxyUrl";
         private const string TimeoutPref = "MeshyWorkspace.TimeoutSeconds";
+        private const string MockModePref = "MeshyWorkspace.UseMockMode";
 
         public static string ApiKey
         {
@@ -29,6 +30,12 @@ namespace MeshyWorkspace.Editor
         {
             get => Mathf.Clamp(EditorPrefs.GetInt(TimeoutPref, 30), 5, 120);
             set => EditorPrefs.SetInt(TimeoutPref, Mathf.Clamp(value, 5, 120));
+        }
+
+        public static bool UseMockMode
+        {
+            get => EditorPrefs.GetBool(MockModePref, true);
+            set => EditorPrefs.SetBool(MockModePref, value);
         }
 
         public static bool HasApiKey => !string.IsNullOrWhiteSpace(ApiKey);

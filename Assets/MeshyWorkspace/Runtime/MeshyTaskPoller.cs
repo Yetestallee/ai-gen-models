@@ -61,7 +61,11 @@ namespace MeshyWorkspace
                 }
             }
 
-            throw new MeshyApiException("任务轮询超时，请稍后重试。", HttpStatusCode.RequestTimeout, isRetryable: true);
+            throw new MeshyApiException(
+                "任务轮询超时（任务 ID: " + taskId + "），任务可能仍在服务端运行，积分以服务端结算为准。可在历史记录中右键恢复查询。",
+                HttpStatusCode.RequestTimeout,
+                isRetryable: true,
+                taskId: taskId);
         }
     }
 }

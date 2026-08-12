@@ -2,7 +2,9 @@
   "name": "MeshyWorkspace.Editor",
   "rootNamespace": "MeshyWorkspace",
   "references": [
-    "MeshyWorkspace.Runtime"
+    "MeshyWorkspace.Runtime",
+    "UnitySkills.Editor",
+    "glTFast"
   ],
   "includePlatforms": [
     "Editor"

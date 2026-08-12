@@ -23,7 +23,7 @@ namespace MeshyWorkspace.Tests
 
             Assert.That(last.Status, Is.EqualTo(MeshyTaskStatus.Succeeded));
             var imageTask = (TextToImageTask)last;
-            Assert.That(imageTask.ImageUrls, Has.Count.EqualTo(2));
+            Assert.That(imageTask.ImageUrls, Has.Count.EqualTo(1));
         }
     }
 }

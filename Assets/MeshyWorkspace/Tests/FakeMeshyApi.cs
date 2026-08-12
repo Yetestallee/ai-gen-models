@@ -48,6 +48,21 @@ namespace MeshyWorkspace.Tests
             throw new NotImplementedException();
         }
 
+        public Task<CreateTaskResponse> CreateRiggingAsync(RiggingRequest request, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CreateTaskResponse> CreateAnimationAsync(AnimationRequest request, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CreateTaskResponse> CreateRetextureAsync(RetextureRequest request, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<List<T>> ListTasksAsync<T>(string taskType, int pageNum = 1, int pageSize = 20, CancellationToken ct = default) where T : MeshyTaskBase
         {
             throw new NotImplementedException();

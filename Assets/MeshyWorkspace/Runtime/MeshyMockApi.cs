@@ -34,6 +34,21 @@ namespace MeshyWorkspace
             return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-it3d") });
         }
 
+        public Task<CreateTaskResponse> CreateRiggingAsync(RiggingRequest request, CancellationToken ct = default)
+        {
+            return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-rig") });
+        }
+
+        public Task<CreateTaskResponse> CreateAnimationAsync(AnimationRequest request, CancellationToken ct = default)
+        {
+            return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-anim") });
+        }
+
+        public Task<CreateTaskResponse> CreateRetextureAsync(RetextureRequest request, CancellationToken ct = default)
+        {
+            return Task.FromResult(new CreateTaskResponse { Result = NewId("mock-retx") });
+        }
+
         public Task<T> GetTaskAsync<T>(string taskId, string taskType, CancellationToken ct = default) where T : MeshyTaskBase
         {
             pollCounts.TryGetValue(taskId, out var count);
@@ -49,16 +64,6 @@ namespace MeshyWorkspace
                 task.StatusRaw = "PENDING";
                 task.Progress = 0;
             }
-            else if (count < 4)
-            {
-                task.StatusRaw = "IN_PROGRESS";
-                task.Progress = 50;
-            }
-            else if (count < 5)
-            {
-                task.StatusRaw = "IN_PROGRESS";
-                task.Progress = 90;
-            }
             else
             {
                 task.StatusRaw = "SUCCEEDED";
@@ -69,8 +74,54 @@ namespace MeshyWorkspace
                 {
                     imageTask.ImageUrls = new List<string>
                     {
-                        "https://mock.invalid/image-1.png",
-                        "https://mock.invalid/image-2.png"
+                        "https://mock.invalid/image-1.png"
+                    };
+                }
+                var modelTask = task as TextTo3DTask;
+                if (modelTask != null)
+                {
+                    modelTask.ModelUrls = new Dictionary<string, string>
+                    {
+                        { "glb", "https://mock.invalid/model.glb" }
+                    };
+                    modelTask.TextureUrls = new List<string>
+                    {
+                        "https://mock.invalid/base_color.png"
+                    };
+                }
+                var image3dTask = task as ImageTo3DTask;
+                if (image3dTask != null)
+                {
+                    image3dTask.ModelUrls = new Dictionary<string, string>
+                    {
+                        { "glb", "https://mock.invalid/model.glb" }
+                    };
+                    image3dTask.TextureUrls = new List<string>
+                    {
+                        "https://mock.invalid/base_color.png"
+                    };
+                }
+                var rigTask = task as RigTask;
+                if (rigTask != null)
+                {
+                    rigTask.RiggedCharacterGlbUrl = "https://mock.invalid/rigged.glb";
+                }
+                var animationTask = task as AnimationTask;
+                if (animationTask != null)
+                {
+                    animationTask.AnimatedCharacterFbxUrl = "https://mock.invalid/animated.fbx";
+                    animationTask.AnimatedCharacterGlbUrl = "https://mock.invalid/animated.glb";
+                }
+                var retextureTask = task as RetextureTask;
+                if (retextureTask != null)
+                {
+                    retextureTask.ModelUrls = new Dictionary<string, string>
+                    {
+                        { "glb", "https://mock.invalid/model.glb" }
+                    };
+                    retextureTask.TextureUrls = new List<string>
+                    {
+                        "https://mock.invalid/base_color.png"
                     };
                 }
             }

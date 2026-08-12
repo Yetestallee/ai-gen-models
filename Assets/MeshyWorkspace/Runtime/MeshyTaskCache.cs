@@ -90,8 +90,11 @@ namespace MeshyWorkspace
         public string FinishedAt { get; set; }
         public double ConsumedCredits { get; set; }
         public string ErrorMessage { get; set; }
+        public string Prompt { get; set; }
+        public string AiModel { get; set; }
+        public string AspectRatio { get; set; }
         public List<string> ImageUrls { get; set; }
         public Dictionary<string, string> ModelUrls { get; set; }
-        public Dictionary<string, string> TextureUrls { get; set; }
+        public List<string> TextureUrls { get; set; }
     }
 }

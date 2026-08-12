@@ -10,6 +10,7 @@ namespace MeshyWorkspace
         public string ErrorCode { get; }
         public bool IsRetryable { get; }
         public int RetryAfterSeconds { get; }
+        public string TaskId { get; }
 
         public MeshyApiException(
             string message,
@@ -17,7 +18,8 @@ namespace MeshyWorkspace
             string errorType = null,
             string errorCode = null,
             bool isRetryable = false,
-            int retryAfterSeconds = 0)
+            int retryAfterSeconds = 0,
+            string taskId = null)
             : base(message)
         {
             StatusCode = statusCode;
@@ -25,6 +27,7 @@ namespace MeshyWorkspace
             ErrorCode = errorCode;
             IsRetryable = isRetryable;
             RetryAfterSeconds = retryAfterSeconds;
+            TaskId = taskId;
         }
     }
 
