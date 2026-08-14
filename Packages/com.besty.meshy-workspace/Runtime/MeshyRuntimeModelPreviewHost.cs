@@ -101,7 +101,7 @@ namespace MeshyWorkspace
         public async Task<bool> LoadAsync(string glbPath)
         {
             ClearModel();
-            if (string.IsNullOrEmpty(glbPath) || !System.IO.File.Exists(glbPath))
+            if (string.IsNullOrEmpty(glbPath) || !MeshyPlatformIO.FileExists(glbPath))
             {
                 LoadPlaceholder();
                 return false;
@@ -111,7 +111,18 @@ namespace MeshyWorkspace
             modelRoot.transform.SetParent(root, false);
 
             var import = new GltfImport();
+#if UNITY_WEBGL
+            // WebGL: load from byte array since direct file path access is not supported
+            var bytes = MeshyPlatformIO.ReadAllBytes(glbPath);
+            if (bytes == null || bytes.Length == 0)
+            {
+                LoadPlaceholder();
+                return false;
+            }
+            var loaded = await import.LoadGltfBinary(bytes);
+#else
             var loaded = await import.LoadFile(glbPath);
+#endif
             if (!loaded || !await import.InstantiateMainSceneAsync(modelRoot.transform))
             {
                 LoadPlaceholder();
@@ -345,7 +356,7 @@ namespace MeshyWorkspace
                 return;
             }
             var folder = Path.GetDirectoryName(glbPath);
-            if (string.IsNullOrEmpty(folder) || !Directory.Exists(folder))
+            if (string.IsNullOrEmpty(folder) || !MeshyPlatformIO.DirectoryExists(folder))
             {
                 return;
             }
@@ -408,12 +419,12 @@ namespace MeshyWorkspace
 
         private Texture2D LoadTexture(string path)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            if (string.IsNullOrEmpty(path) || !MeshyPlatformIO.FileExists(path))
             {
                 return null;
             }
             var texture = new Texture2D(2, 2, TextureFormat.RGBA32, true);
-            if (!texture.LoadImage(File.ReadAllBytes(path)))
+            if (!texture.LoadImage(MeshyPlatformIO.ReadAllBytes(path)))
             {
                 Object.Destroy(texture);
                 return null;

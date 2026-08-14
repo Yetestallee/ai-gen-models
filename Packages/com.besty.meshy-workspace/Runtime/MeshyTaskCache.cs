@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace MeshyWorkspace
 {
@@ -53,6 +54,18 @@ namespace MeshyWorkspace
 
         private List<MeshyCachedTask> Load()
         {
+#if UNITY_WEBGL
+            var json = PlayerPrefs.GetString(CacheKey, "[]");
+            try
+            {
+                var loaded = JsonConvert.DeserializeObject<List<MeshyCachedTask>>(json);
+                return loaded ?? new List<MeshyCachedTask>();
+            }
+            catch (Exception)
+            {
+                return new List<MeshyCachedTask>();
+            }
+#else
             if (!File.Exists(filePath))
             {
                 return new List<MeshyCachedTask>();
@@ -67,10 +80,15 @@ namespace MeshyWorkspace
             {
                 return new List<MeshyCachedTask>();
             }
+#endif
         }
 
         private void Save()
         {
+#if UNITY_WEBGL
+            PlayerPrefs.SetString(CacheKey, JsonConvert.SerializeObject(entries, Formatting.Indented));
+            PlayerPrefs.Save();
+#else
             var dir = Path.GetDirectoryName(filePath);
             if (!string.IsNullOrEmpty(dir))
             {
@@ -78,7 +96,15 @@ namespace MeshyWorkspace
             }
 
             File.WriteAllText(filePath, JsonConvert.SerializeObject(entries, Formatting.Indented));
+#endif
         }
+
+#if UNITY_WEBGL
+        private string CacheKey
+        {
+            get { return "MeshyTaskCache_" + Math.Abs(filePath.GetHashCode()); }
+        }
+#endif
     }
 
     public class MeshyCachedTask

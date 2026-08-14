@@ -98,7 +98,7 @@ namespace MeshyWorkspace
         {
             foreach (var folder in TaskFolderCandidates(taskType, taskId))
             {
-                if (Directory.Exists(folder))
+                if (MeshyPlatformIO.DirectoryExists(folder))
                 {
                     return folder;
                 }
@@ -111,7 +111,7 @@ namespace MeshyWorkspace
             foreach (var folder in TaskFolderCandidates("text-to-3d", taskId))
             {
                 var file = Path.Combine(folder, "model.glb");
-                if (File.Exists(file))
+                if (MeshyPlatformIO.FileExists(file))
                 {
                     return file;
                 }
@@ -123,11 +123,11 @@ namespace MeshyWorkspace
         {
             foreach (var folder in TaskFolderCandidates("text-to-image", taskId))
             {
-                if (!Directory.Exists(folder))
+                if (!MeshyPlatformIO.DirectoryExists(folder))
                 {
                     continue;
                 }
-                var files = Directory.GetFiles(folder, "image_" + index + ".*");
+                var files = MeshyPlatformIO.GetFiles(folder, "image_" + index + ".*");
                 if (files.Length > 0)
                 {
                     return files[0];

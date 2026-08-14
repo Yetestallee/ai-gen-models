@@ -21,11 +21,7 @@ namespace MeshyWorkspace
                 return false;
             }
 
-            var directory = Path.GetDirectoryName(destinationPath);
-            if (!string.IsNullOrEmpty(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            MeshyPlatformIO.CreateDirectory(Path.GetDirectoryName(destinationPath));
 
             using (var request = UnityWebRequest.Get(url))
             {
@@ -42,7 +38,7 @@ namespace MeshyWorkspace
                     return false;
                 }
 
-                File.WriteAllBytes(destinationPath, request.downloadHandler.data);
+                MeshyPlatformIO.WriteAllBytes(destinationPath, request.downloadHandler.data);
                 return true;
             }
         }
@@ -104,7 +100,7 @@ namespace MeshyWorkspace
             }
 
             text = text.Trim().Trim('"');
-            if (Uri.TryCreate(text, UriKind.Absolute, out _) || File.Exists(text))
+            if (Uri.TryCreate(text, UriKind.Absolute, out _) || MeshyPlatformIO.FileExists(text))
             {
                 return text;
             }
@@ -131,14 +127,14 @@ namespace MeshyWorkspace
 
         public static string FileToDataUri(string path)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            if (string.IsNullOrEmpty(path) || !MeshyPlatformIO.FileExists(path))
             {
                 return string.Empty;
             }
 
             var extension = Path.GetExtension(path).ToLowerInvariant();
             var mime = extension == ".png" ? "image/png" : "image/jpeg";
-            return "data:" + mime + ";base64," + Convert.ToBase64String(File.ReadAllBytes(path));
+            return "data:" + mime + ";base64," + Convert.ToBase64String(MeshyPlatformIO.ReadAllBytes(path));
         }
     }
 }

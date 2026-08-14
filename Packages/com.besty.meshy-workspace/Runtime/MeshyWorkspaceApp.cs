@@ -116,8 +116,8 @@ namespace MeshyWorkspace
         private void Awake()
         {
             MeshyPaths.RootOverride = MeshyPaths.PersistentRoot;
-            Directory.CreateDirectory(MeshyPaths.Root);
-            Directory.CreateDirectory(HistoryFolder);
+            MeshyPlatformIO.CreateDirectory(MeshyPaths.Root);
+            MeshyPlatformIO.CreateDirectory(HistoryFolder);
 
             settings = MeshyRuntimeSettingsStore.Load();
             cache = new MeshyTaskCache(HistoryPath);
@@ -461,7 +461,7 @@ namespace MeshyWorkspace
                 {
                     text = MeshyRuntimeDownloads.TryReadClipboardPathOrUrl();
                 }
-                if (!string.IsNullOrEmpty(text) && File.Exists(text))
+                if (!string.IsNullOrEmpty(text) && MeshyPlatformIO.FileExists(text))
                 {
                     text = MeshyRuntimeDownloads.FileToDataUri(text);
                 }
@@ -801,7 +801,7 @@ namespace MeshyWorkspace
             if (!string.IsNullOrEmpty(imageOrTask))
             {
                 var isUrl = imageOrTask.StartsWith("http", StringComparison.OrdinalIgnoreCase);
-                var isFile = File.Exists(imageOrTask);
+                var isFile = MeshyPlatformIO.FileExists(imageOrTask);
                 if (!isUrl && !isFile && !IsUuid(imageOrTask))
                 {
                     SetModelStatus("图片任务 ID 必须是 UUID，或选择本地图片/URL", true);
@@ -825,7 +825,7 @@ namespace MeshyWorkspace
                     {
                         taskType = "image-to-3d";
                         var isUrl = imageOrTask.StartsWith("http", StringComparison.OrdinalIgnoreCase);
-                        var isFile = File.Exists(imageOrTask);
+                        var isFile = MeshyPlatformIO.FileExists(imageOrTask);
                         response = await api.CreateImageTo3DAsync(new ImageTo3DRequest
                         {
                             InputTaskId = !isUrl && !isFile ? imageOrTask : null,
@@ -1073,7 +1073,7 @@ namespace MeshyWorkspace
         private async Task SaveImageTaskAsync(TextToImageTask task, string prompt)
         {
             var folder = MeshyPaths.TaskFolder("text-to-image", task.Id);
-            Directory.CreateDirectory(folder);
+            MeshyPlatformIO.CreateDirectory(folder);
             var urls = task.ImageUrls ?? new List<string>();
             var downloaded = new List<Texture2D>();
             for (var i = 0; i < Math.Max(imageCount, urls.Count); i++)
@@ -1131,7 +1131,7 @@ namespace MeshyWorkspace
         private async Task SaveModelFilesAsync(string taskId, string taskType, string prompt, string status, double credits, Dictionary<string, string> modelUrls, List<string> textureUrls)
         {
             var folder = MeshyPaths.TaskFolder(taskType, taskId);
-            Directory.CreateDirectory(folder);
+            MeshyPlatformIO.CreateDirectory(folder);
             var glbUrl = PickGlb(modelUrls);
             var glbPath = Path.Combine(folder, "model.glb");
             var downloaded = await MeshyRuntimeDownloads.DownloadFileAsync(glbUrl, glbPath);
@@ -1167,7 +1167,7 @@ namespace MeshyWorkspace
         private async Task SaveAnimationTaskAsync(AnimationTask task, string prompt)
         {
             var folder = MeshyPaths.TaskFolder("animation", task.Id);
-            Directory.CreateDirectory(folder);
+            MeshyPlatformIO.CreateDirectory(folder);
             var glbPath = Path.Combine(folder, "animated.glb");
             var downloaded = await MeshyRuntimeDownloads.DownloadFileAsync(task.EffectiveGlbUrl, glbPath);
             if (downloaded)
@@ -1223,7 +1223,7 @@ namespace MeshyWorkspace
                 entry.ModelUrls = new Dictionary<string, string> { ["glb"] = url };
                 var folder = MeshyPaths.TaskFolder("rigging", task.Id);
                 var glbPath = Path.Combine(folder, "model.glb");
-                Directory.CreateDirectory(folder);
+                MeshyPlatformIO.CreateDirectory(folder);
                 await MeshyRuntimeDownloads.DownloadFileAsync(url, glbPath);
             }
 
@@ -1249,7 +1249,7 @@ namespace MeshyWorkspace
             RenderHistory(imageHistoryList, imageHistoryMoreButton, "text-to-image", imageSearchField == null ? string.Empty : imageSearchField.value, imageHistoryPage, entry =>
             {
                 var file = MeshyPaths.FindImageFile(entry.TaskId, 0);
-                if (File.Exists(file))
+                if (MeshyPlatformIO.FileExists(file))
                 {
                     ShowLocalImage(file);
                 }
@@ -1264,7 +1264,7 @@ namespace MeshyWorkspace
         {
             PostMain(() =>
             {
-                var bytes = File.ReadAllBytes(file);
+                var bytes = MeshyPlatformIO.ReadAllBytes(file);
                 var texture = new Texture2D(2, 2);
                 texture.LoadImage(bytes);
                 textures.Add(texture);
@@ -1318,7 +1318,7 @@ namespace MeshyWorkspace
                 RenderHistory(animateHistoryList, null, "animation", string.Empty, 0, entry =>
                 {
                     var glb = Path.Combine(MeshyPaths.FindTaskFolder("animation", entry.TaskId), "animated.glb");
-                    if (File.Exists(glb))
+                    if (MeshyPlatformIO.FileExists(glb))
                     {
                         _ = animatePreviewHost.LoadAsync(glb);
                     }
@@ -1399,10 +1399,10 @@ namespace MeshyWorkspace
                 return;
             }
             var folder = MeshyPaths.FindTaskFolder(entry.TaskType, entry.TaskId);
-            if (!Directory.Exists(folder))
+            if (!MeshyPlatformIO.DirectoryExists(folder))
             {
                 folder = MeshyPaths.TaskFolder(entry.TaskType, entry.TaskId);
-                Directory.CreateDirectory(folder);
+                MeshyPlatformIO.CreateDirectory(folder);
             }
             Application.OpenURL("file:///" + folder.Replace('\\', '/'));
         }
@@ -1427,11 +1427,11 @@ namespace MeshyWorkspace
                 return;
             }
             var folder = MeshyPaths.FindTaskFolder(entry.TaskType, entry.TaskId);
-            if (Directory.Exists(folder))
+            if (MeshyPlatformIO.DirectoryExists(folder))
             {
                 try
                 {
-                    Directory.Delete(folder, true);
+                    MeshyPlatformIO.DeleteDirectory(folder, true);
                 }
                 catch (Exception e)
                 {
@@ -1473,7 +1473,7 @@ namespace MeshyWorkspace
                 return;
             }
             var folder = MeshyPaths.TaskFolder(entry.TaskType, entry.TaskId);
-            Directory.CreateDirectory(folder);
+            MeshyPlatformIO.CreateDirectory(folder);
             entry.DownloadState = "downloading";
             entry.Recoverable = true;
             entry.ErrorReason = string.Empty;
@@ -1548,7 +1548,7 @@ namespace MeshyWorkspace
             for (var i = 0; i < entry.ImageUrls.Count; i++)
             {
                 var destination = Path.Combine(folder, "image_" + i + ".png");
-                if (File.Exists(destination))
+                if (MeshyPlatformIO.FileExists(destination))
                 {
                     downloaded = true;
                     continue;
@@ -1561,7 +1561,7 @@ namespace MeshyWorkspace
         private async Task<bool> RestoreAnimationHistoryEntryAsync(MeshyCachedTask entry, string folder)
         {
             var existing = Path.Combine(MeshyPaths.FindTaskFolder("animation", entry.TaskId), "animated.glb");
-            if (File.Exists(existing))
+            if (MeshyPlatformIO.FileExists(existing))
             {
                 await animatePreviewHost.LoadAsync(existing);
                 PostMain(() => animatePreviewImage.image = animatePreviewHost.Texture);
@@ -1744,11 +1744,11 @@ namespace MeshyWorkspace
                     }
                     var destination = Path.Combine(folder, fileName);
                     var renamed = Path.Combine(folder, "texture_" + i + ".png");
-                    if (File.Exists(renamed) && !File.Exists(destination))
+                    if (MeshyPlatformIO.FileExists(renamed) && !MeshyPlatformIO.FileExists(destination))
                     {
-                        File.Move(renamed, destination);
+                        MeshyPlatformIO.FileMove(renamed, destination);
                     }
-                    if (!File.Exists(destination))
+                    if (!MeshyPlatformIO.FileExists(destination))
                     {
                         await MeshyRuntimeDownloads.DownloadFileAsync(textureUrl, destination);
                     }
@@ -1793,7 +1793,7 @@ namespace MeshyWorkspace
                 await RestoreHistoryEntryAsync(modelSelectedEntry);
                 glb = MeshyPaths.FindModelFile(modelSelectedEntry.TaskId);
             }
-            if (!string.IsNullOrEmpty(glb) && File.Exists(glb))
+            if (!string.IsNullOrEmpty(glb) && MeshyPlatformIO.FileExists(glb))
             {
                 await modelPreviewHost.LoadAsync(glb);
                 PostMain(() =>
@@ -2258,7 +2258,7 @@ namespace MeshyWorkspace
                 Path.Combine(Application.streamingAssetsPath, "MeshyWorkspace", "History", "tasks.json")
             })
             {
-                if (!File.Exists(path))
+                if (!MeshyPlatformIO.FileExists(path))
                 {
                     continue;
                 }
