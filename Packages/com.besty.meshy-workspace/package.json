@@ -1,15 +1,43 @@
 {
   "name": "com.besty.meshy-workspace",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Meshy Workspace",
-  "description": "Runtime and editor workspace for Meshy image, model, and animation generation.",
+  "description": "Runtime and editor workspace for Meshy AI-powered 3D model generation, image generation, and animation. Includes UI Toolkit-based workspace, task polling, SSE progress tracking, model preview, and Windows build pipeline.",
   "unity": "2022.3",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://github.com/Besty0728/com.besty.meshy-workspace",
+  "changelogUrl": "https://github.com/Besty0728/com.besty.meshy-workspace/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/Besty0728/com.besty.meshy-workspace/blob/main/LICENSE.md",
+  "keywords": [
+    "meshy",
+    "ai",
+    "3d",
+    "generation",
+    "text-to-3d",
+    "image-to-3d",
+    "animation",
+    "workspace"
+  ],
   "dependencies": {
     "com.unity.cloud.gltfast": "6.14.1",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.ugui": "1.0.0"
   },
+  "samples": [
+    {
+      "displayName": "Meshy Game",
+      "description": "A complete sample scene demonstrating the Meshy Workspace runtime with AI model generation, image generation, and animation features. Includes UI Toolkit setup, runtime preview host, and Windows build configuration.",
+      "path": "Samples~/MeshyGame"
+    }
+  ],
   "author": {
-    "name": "Besty"
-  }
+    "name": "Besty",
+    "email": "1277161656@qq.com",
+    "url": "https://github.com/Besty0728"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Besty0728/com.besty.meshy-workspace.git"
+  },
+  "hideInEditor": false
 }

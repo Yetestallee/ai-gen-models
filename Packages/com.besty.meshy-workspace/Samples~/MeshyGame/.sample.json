@@ -1,0 +1,4 @@
+{
+  "displayName": "Meshy Game",
+  "description": "A sample scene demonstrating the Meshy Workspace runtime with AI 3D model generation, image generation, and animation features. Includes UI Toolkit setup, runtime preview host, and Windows build configuration."
+}
