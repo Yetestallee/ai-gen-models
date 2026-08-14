@@ -1,0 +1,15 @@
+{
+  "name": "com.besty.meshy-workspace",
+  "version": "0.1.0",
+  "displayName": "Meshy Workspace",
+  "description": "Runtime and editor workspace for Meshy image, model, and animation generation.",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.cloud.gltfast": "6.14.1",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.ugui": "1.0.0"
+  },
+  "author": {
+    "name": "Besty"
+  }
+}

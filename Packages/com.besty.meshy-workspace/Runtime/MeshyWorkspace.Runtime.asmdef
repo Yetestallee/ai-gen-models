@@ -1,0 +1,17 @@
+{
+  "name": "MeshyWorkspace.Runtime",
+  "rootNamespace": "MeshyWorkspace",
+  "references": [
+    "glTFast",
+    "Unity.Newtonsoft.Json"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

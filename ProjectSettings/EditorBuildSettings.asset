@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/MeshyGame/Scenes/MeshyGame.unity
+    guid: d30aab1e56221df4181bb9c5ec075753
   m_configObjects: {}

@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "com.besty.meshy-workspace": {
+      "version": "file:com.besty.meshy-workspace",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.cloud.gltfast": "6.14.1",
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.ugui": "1.0.0"
+      }
+    },
     "com.besty.unity-skills": {
       "version": "https://github.com/Besty0728/Unity-Skills.git?path=/SkillsForUnity",
       "depth": 0,

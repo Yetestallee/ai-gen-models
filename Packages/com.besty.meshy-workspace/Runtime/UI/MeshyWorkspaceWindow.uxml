@@ -1,0 +1,173 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="MeshyWorkspaceWindow.uss" />
+    <ui:VisualElement name="WorkspaceRoot" class="workspace-root">
+        <ui:VisualElement name="TopBar" class="top-bar">
+            <ui:Label text="Meshy Workspace" name="BrandLabel" class="brand-label" />
+            <ui:Label text="余额 --" name="BalanceLabel" class="balance-label" />
+            <ui:Button text="刷新余额" name="RefreshBalanceButton" class="icon-button" />
+            <ui:Button text="设置" name="SettingsButton" class="icon-button" />
+            <ui:Button text="帮助" name="HelpButton" class="icon-button" />
+            <ui:Button text="退出" name="ExitButton" class="icon-button" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Body" class="body">
+            <ui:VisualElement name="Sidebar" class="sidebar">
+                <ui:Button text="任务" name="SidebarTasks" class="sidebar-button" />
+                <ui:Button text="图像" name="SidebarImage" class="sidebar-button active" />
+                <ui:Button text="模型" name="SidebarModel" class="sidebar-button" />
+                <ui:Button text="动画" name="SidebarAnimate" class="sidebar-button" />
+            </ui:VisualElement>
+            <ui:VisualElement name="MainCanvas" class="main-canvas">
+                <ui:VisualElement name="TasksView" class="view tasks-view hidden">
+                    <ui:Label text="任务进度" class="view-title" />
+                    <ui:ScrollView name="TasksList" class="tasks-scroll" />
+                </ui:VisualElement>
+                <ui:VisualElement name="ImageView" class="view image-view">
+                    <ui:ScrollView name="ImageParams" class="image-params" mode="Vertical" verticalScrollerVisibility="AlwaysVisible" horizontalScrollerVisibility="Hidden">
+                        <ui:Label text="人工智能模型" class="section-label" />
+                        <ui:DropdownField name="ImageModelDropdown" class="model-select" />
+                        <ui:Label text="提示" class="section-label" />
+                        <ui:TextField name="ImagePromptField" class="prompt-field" multiline="true" />
+                        <ui:Label text="0/800" name="ImageCharCountLabel" class="char-count" />
+                        <ui:Label text="纵横比" class="section-label" />
+                        <ui:VisualElement name="AspectSegments" class="segmented" />
+                        <ui:Label text="图像数量" class="section-label" />
+                        <ui:VisualElement name="CountSegments" class="segmented" />
+                        <ui:Toggle name="ImageMultiViewToggle" label="多视图" class="image-toggle" />
+                        <ui:Label text="姿势" class="section-label" />
+                        <ui:VisualElement name="PoseSegments" class="segmented" />
+                        <ui:Label text="图像参考" class="section-label" />
+                        <ui:Button text="点击/拖放/粘贴图像" name="ImageUploadButton" class="dropzone" />
+                        <ui:Label text="已选 0/5 · png/jpg/jpeg/webp · &lt;=20MB" name="ImageReferenceLabel" class="hint-text" />
+                        <ui:VisualElement name="ImageActionBar" class="action-bar">
+                            <ui:Label text="预计消耗 0 积分" name="ImageCostLabel" class="cost-label" />
+                            <ui:Button text="生成" name="ImageGenerateButton" class="primary-button" />
+                        </ui:VisualElement>
+                    </ui:ScrollView>
+                    <ui:VisualElement name="ImageCanvas" class="image-canvas">
+                        <ui:TextField name="ImageSearchField" class="search-field" placeholder="搜索我的生成" />
+                        <ui:Label text="就绪" name="ImageStatusLabel" class="status-label" />
+                        <ui:ProgressBar name="ImageProgressBar" class="image-progress" />
+                        <ui:ScrollView name="ImageResultScroll" class="result-scroll">
+                            <ui:VisualElement name="ImageResultGrid" class="result-grid" />
+                        </ui:ScrollView>
+                        <ui:Label text="您今天想要创建什么？" name="ImageEmptyLabel" class="empty-state" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="ImageHistoryPanel" class="model-history-panel">
+                        <ui:Label text="图像历史" class="panel-title" />
+                        <ui:ScrollView name="ImageHistoryList" class="model-history-scroll" />
+                        <ui:Button text="加载更多" name="ImageHistoryMoreButton" class="secondary-button" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="ModelView" class="view model-view hidden">
+                    <ui:ScrollView name="ModelParams" class="image-params" mode="Vertical" verticalScrollerVisibility="AlwaysVisible" horizontalScrollerVisibility="Hidden">
+                        <ui:Label text="图像参考（Image-to-3D）" class="section-label" />
+                        <ui:Button text="点击/拖放/粘贴图像" name="ModelLocalImageButton" class="dropzone" />
+                        <ui:Label text="支持 png/jpg/jpeg/webp · &lt;=20MB" name="ModelImageRefLabel" class="hint-text" />
+                        <ui:TextField name="ModelImageTaskField" class="model-select" placeholder="图片任务 ID（可选）" />
+                        <ui:Label text="模式类型" class="section-label" />
+                        <ui:VisualElement name="ModelModeSegments" class="segmented" />
+                        <ui:VisualElement name="ModelStandardSection">
+                            <ui:Label text="人工智能模型" class="section-label" />
+                            <ui:DropdownField name="ModelAiDropdown" class="model-select" />
+                            <ui:Toggle name="ModelUltraToggle" label="超精细模式" class="image-toggle" />
+                            <ui:Toggle name="ModelAutoSplitToggle" label="自动拆分" class="image-toggle" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ModelTopologySection">
+                            <ui:Label text="拓扑" class="section-label" />
+                            <ui:VisualElement name="ModelTopologySegments" class="segmented" />
+                            <ui:Label text="人工智能模型" class="section-label" />
+                            <ui:DropdownField name="ModelTopologyAiDropdown" class="model-select" />
+                            <ui:Label text="面数" class="section-label" />
+                            <ui:IntegerField name="ModelTopologyFacesField" class="model-select" />
+                            <ui:Label text="100 - 300000 · 默认 30000" name="ModelTopologyFacesHint" class="hint-text" />
+                        </ui:VisualElement>
+                        <ui:Label text="姿势" class="section-label" />
+                        <ui:VisualElement name="ModelPoseSegments" class="segmented" />
+                        <ui:Toggle name="ModelEnhanceToggle" label="图像增强" class="image-toggle" />
+                        <ui:Label text="许可证" class="section-label" />
+                        <ui:DropdownField name="ModelLicenseDropdown" class="model-select" />
+                        <ui:VisualElement name="ModelPromptSection">
+                            <ui:Label text="提示词" class="section-label" />
+                            <ui:TextField name="ModelPromptField" class="prompt-field" multiline="true" />
+                            <ui:Label text="0/600" name="ModelCharCountLabel" class="char-count" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ModelActionBar" class="action-bar">
+                            <ui:Label text="预计消耗 0 积分" name="ModelCostLabel" class="cost-label" />
+                            <ui:Button text="生成预览" name="ModelPreviewButton" class="primary-button" />
+                            <ui:Button text="精修模型" name="ModelRefineButton" class="primary-button" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="ModelPostSection" class="action-bar">
+                            <ui:Label text="后处理" class="section-label" />
+                            <ui:Label text="重拓扑" class="section-label" />
+                            <ui:VisualElement name="ModelRemeshTopologySegments" class="segmented" />
+                            <ui:IntegerField name="ModelRemeshFacesField" class="model-select" />
+                            <ui:Label text="100 - 300000 · 默认 30000" name="ModelRemeshFacesHint" class="hint-text" />
+                            <ui:Button text="重拓扑" name="ModelRemeshButton" class="primary-button" />
+                            <ui:Label text="风格参考图（可选）" class="section-label" />
+                            <ui:Button text="选择参考图" name="ModelRetextureImageButton" class="dropzone" />
+                            <ui:TextField name="ModelRetextureImageUrlField" class="model-select" placeholder="或粘贴图片 URL" />
+                            <ui:TextField name="ModelRetexturePromptField" class="prompt-field" multiline="true" placeholder="描述新风格，例如：红木材质" />
+                            <ui:Button text="重新纹理" name="ModelRetextureButton" class="primary-button" />
+                        </ui:VisualElement>
+                    </ui:ScrollView>
+                    <ui:VisualElement name="ModelCanvas" class="image-canvas">
+                        <ui:Image name="ModelPreviewImage" class="model-preview-image" />
+                        <ui:Label text="拓扑 · 三角面 · 面数 -- · 顶点数 --" name="ModelStatsLabel" class="status-label" />
+                        <ui:Label text="就绪" name="ModelStatusLabel" class="status-label" />
+                        <ui:ProgressBar name="ModelProgressBar" class="image-progress" />
+                        <ui:VisualElement name="ModelActions" class="model-actions">
+                            <ui:Button text="导入工程" name="ModelImportButton" class="secondary-button" />
+                            <ui:Button text="搜索我的生成" name="ModelHistoryToggleButton" class="secondary-button" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="ModelHistoryPanel" class="model-history-panel">
+                        <ui:Label text="模型历史" class="panel-title" />
+                        <ui:ScrollView name="ModelHistoryList" class="model-history-scroll" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="AnimateView" class="view animate-view hidden">
+                    <ui:ScrollView name="AnimateParams" class="image-params" mode="Vertical" verticalScrollerVisibility="AlwaysVisible" horizontalScrollerVisibility="Hidden">
+                        <ui:Label text="模型来源" class="section-label" />
+                        <ui:Button text="选择已绑定模型" name="AnimateModelButton" class="dropzone" />
+                        <ui:Label text="从生成历史或 GLB 选择角色" name="AnimateModelLabel" class="hint-text" />
+                        <ui:Label text="搜索动画" class="section-label" />
+                        <ui:TextField name="AnimateSearchField" class="model-select" placeholder="输入动画名称" />
+                        <ui:Label text="分类" class="section-label" />
+                        <ui:DropdownField name="AnimateCategoryDropdown" class="model-select" />
+                        <ui:Label text="动作库" class="section-label" />
+                        <ui:ScrollView name="AnimateActionList" class="animate-action-list">
+                            <ui:Button text="Mage Spell Cast" name="AnimateAction0" class="action-card" />
+                            <ui:Button text="Hip Hop Dance" name="AnimateAction1" class="action-card" />
+                            <ui:Button text="三连击" name="AnimateAction2" class="action-card" />
+                            <ui:Button text="企鹅漫步" name="AnimateAction3" class="action-card" />
+                            <ui:Button text="信仰之跃" name="AnimateAction4" class="action-card" />
+                        </ui:ScrollView>
+                        <ui:Label text="后处理" class="section-label" />
+                        <ui:Toggle name="AnimateFpsToggle" label="change_fps" class="image-toggle" />
+                        <ui:Toggle name="AnimateFbxToggle" label="fbx2usdz" class="image-toggle" />
+                        <ui:Toggle name="AnimateArmatureToggle" label="extract_armature" class="image-toggle" />
+                        <ui:VisualElement name="AnimateActionBar" class="action-bar">
+                            <ui:Label text="预计消耗 3 积分" name="AnimateCostLabel" class="cost-label" />
+                            <ui:VisualElement name="AnimateActionRow" class="reference-row">
+                                <ui:Button text="绑定骨骼" name="AnimateRigButton" class="primary-button" />
+                                <ui:Button text="生成动画" name="AnimateGenerateButton" class="primary-button" />
+                            </ui:VisualElement>
+                            <ui:Label text="未绑定" name="AnimateRigLabel" class="hint-text" />
+                        </ui:VisualElement>
+                    </ui:ScrollView>
+                    <ui:VisualElement name="AnimateCanvas" class="image-canvas">
+                        <ui:Image name="AnimatePreviewImage" class="model-preview-image" />
+                        <ui:VisualElement name="AnimateControls" class="model-actions">
+                            <ui:Button text="播放" name="AnimatePlayButton" class="secondary-button" />
+                            <ui:Button text="暂停" name="AnimatePauseButton" class="secondary-button" />
+                            <ui:Button text="重置" name="AnimateResetButton" class="secondary-button" />
+                        </ui:VisualElement>
+                        <ui:Label text="就绪" name="AnimateStatusLabel" class="status-label" />
+                        <ui:ProgressBar name="AnimateProgressBar" class="image-progress" />
+                        <ui:ScrollView name="AnimateHistoryList" class="history-scroll" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
